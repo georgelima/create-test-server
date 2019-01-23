@@ -30,9 +30,9 @@ const createTestServer = opts => createCert(opts && opts.certificate)
 		app.use(bodyParser.raw(Object.assign({ limit: '1mb', type: 'application/octet-stream' }, opts && opts.bodyParser)));
 		app.caCert = keys.caCert;
 
-		app.listen = () => Promise.all([
-			pify(server.listen.bind(server))().then(() => {
-				app.port = server.address().port;
+		app.listen = ({ httpPort }) => Promise.all([
+			pify(server.listen.bind(server))(httpPort).then(() => {
+				app.port = httpPort;
 				app.url = `http://localhost:${app.port}`;
 			}),
 			pify(sslServer.listen.bind(sslServer))().then(() => {
@@ -63,7 +63,7 @@ const createTestServer = opts => createCert(opts && opts.certificate)
 			}
 		};
 
-		return app.listen().then(() => app);
+		return app.listen({ httpPort: opts.httpPort }).then(() => app);
 	});
 
 module.exports = createTestServer;
